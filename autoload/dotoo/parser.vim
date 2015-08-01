@@ -4,13 +4,7 @@ endif
 let g:autoloaded_dotoo_parser = 1
 
 function! s:readfile(file)
-  if !bufloaded(a:file)
-    let old_view = winsaveview()
-    silent exe 'noauto split' a:file
-    quit
-    call winrestview(old_view)
-  endif
-  return getbufline(a:file, 1, '$')
+  return readfile(a:file)
 endfunction
 
 function! s:flatten_headlines(headlines)

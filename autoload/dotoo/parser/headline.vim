@@ -94,12 +94,14 @@ function! s:headline_methods.serialize() dict
   let indent = repeat(' ', self.level + 1)
   call add(lines, self.line())
   call extend(lines, self.content)
-  call add(lines, indent . self.metadata.serialize())
+  let metadata = self.metadata.serialize()
+  if !empty(metadata)
+    call add(lines, indent . self.metadata.serialize())
+  endif
   call extend(lines, map(self.properties.serialize(), 'indent . v:val'))
   call extend(lines, map(self.logbook.serialize(), 'indent . v:val'))
   let child_headlines = map(deepcopy(self.headlines), 'v:val.serialize()')
   call map(child_headlines, 'extend(lines, v:val)')
-  call filter(lines, '!empty(v:val)')
   return lines
 endfunction
 
@@ -214,10 +216,15 @@ function! dotoo#parser#headline#new(...) abort
         \ 'headlines': []
         \ }
 
+  let last_token_lnum = token.lnum
   if has_key(token, 'type')
+    let last_token_lnum = get(tokens, -1, token).lnum
+    let blanks = []
     while len(tokens)
       let token = remove(tokens, 0)
       if token.type ==# s:syntax.line.type
+        call extend(headline.content, blanks)
+        let blanks = []
         call add(headline.content, token.content[0])
       elseif token.type == s:syntax.metadata.type
         call extend(headline.metadata, dotoo#parser#metadata#new(token))
@@ -233,12 +240,18 @@ function! dotoo#parser#headline#new(...) abort
         else
           break
         endif
+      elseif token.type == s:syntax.blank.type
+        call add(blanks, token.content[0])
       endif
     endwhile
   endif
 
   call extend(headline, s:headline_methods)
-  let headline.last_lnum = headline.lnum + len(headline.serialize()) - 1
+  if empty(tokens)
+    let headline.last_lnum = last_token_lnum
+  else
+    let headline.last_lnum = get(tokens, 0).lnum - 1
+  endif
   let headline.id = sha256(string(headline))
 
   " Has side-effects

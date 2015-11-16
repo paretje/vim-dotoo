@@ -48,7 +48,7 @@ function! s:datetime_methods.to_seconds() dict
 endfunction
 
 function! s:localtime(...)
-  let ts  = a:0 ? a:1 : has('unix') ? reltimestr(reltime()) : localtime() . '.0'
+  let ts  = a:0 ? a:1 : localtime() . '.0'
   let rp = a:0 > 1 ? a:2 : ''
   let us  = matchstr(ts, '\.\zs.\{0,6\}')
   let us .= repeat(0, 6 - strlen(us))

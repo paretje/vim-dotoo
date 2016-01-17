@@ -107,7 +107,7 @@ endfunction
 
 function! s:headline_methods.open() dict
   if expand('%:p') !=# self.file
-    silent exe 'noauto split' self.file
+    silent exe 'noauto tabedit' self.file
     return 1
   endif
   return 0
